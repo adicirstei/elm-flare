@@ -1,34 +1,51 @@
 module Main where
 
-import Html exposing (div, text, fromElement)
+import Html exposing (div, text, fromElement, button)
 import Graphics.Element as El
 import Html.Events as Ev
+--import Html.Attributes as At
 
 import Signal
 
 type Action
   = NoOp
-  | Buuuu
+  | Simple
+  | Custom Int
 
 
 actionMB =
   Signal.mailbox NoOp
 
-
 update act model =
   case act of
     NoOp -> model
-    Buuuu -> {model | clicks = model.clicks + 1}
+    Simple -> {model | clicks = model.clicks + 1}
+    Custom step -> {model | clicks = model.clicks + step}
+
 
 model =
   { clicks = 0
   }
 
-view address model =
+view generalAddress customAddress model =
   div
-    [ Ev.onClick address Buuuu ]
-    [ fromElement <| El.show model ]
+    []
+    [ fromElement <| El.show model
+    , button
+        [ Ev.onClick generalAddress Simple
+        ]
+        [ text "general mailbox address" ]
+    , button
+        [ Ev.onClick customAddress 6
+        ]
+        [ text "Custom mailbox address +6" ]
+    ]
 
 modelStream = Signal.foldp update model actionMB.signal
 
-main = Signal.map (view actionMB.address) modelStream
+main =
+  let
+    custom = Signal.forwardTo actionMB.address Custom
+    viewPartAplied = view actionMB.address custom
+  in
+    Signal.map viewPartAplied modelStream
