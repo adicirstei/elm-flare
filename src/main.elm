@@ -1,23 +1,34 @@
 module Main where
 
-import StartApp.Simple exposing (start)
+import Html exposing (div, text, fromElement)
+import Graphics.Element as El
+import Html.Events as Ev
 
-import Html exposing (div, text)
-import Flare
+import Signal
 
-update act int = 42
-
-view ad m =
-  div []
-    [ Flare.int "x" 3
-    ]
+type Action
+  = NoOp
+  | Buuuu
 
 
+actionMB =
+  Signal.mailbox NoOp
 
 
-main =
-  start
-    { model = 0
-    , update = update
-    , view = view
-    }
+update act model =
+  case act of
+    NoOp -> model
+    Buuuu -> {model | clicks = model.clicks + 1}
+
+model =
+  { clicks = 0
+  }
+
+view address model =
+  div
+    [ Ev.onClick address Buuuu ]
+    [ fromElement <| El.show model ]
+
+modelStream = Signal.foldp update model actionMB.signal
+
+main = Signal.map (view actionMB.address) modelStream
